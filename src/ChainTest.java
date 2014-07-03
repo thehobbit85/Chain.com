@@ -70,7 +70,7 @@ public class ChainTest extends TestCase {
     	 String hex = "1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp";
          String addressTransactions = chain.sendTransaction(hex);
          assertNull(addressTransactions);         
-         //hex = "Put a Real Hex";
+         //hex = "Put a Real unused Hex";
          //addressTransactions = chain.sendTransaction(hex);
          //assertNotNull(addressTransactions);       
          //hex = "Put Fake Hex";

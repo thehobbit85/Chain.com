@@ -1,17 +1,19 @@
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
+import javax.net.ssl.HttpsURLConnection;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Chain {
 
 	private String apiKey;
-	private final String defualtApiKey = "DEMO-4a5e1e4";
+	private final String defualtApiKey = "?key=DEMO-4a5e1e4";
+	private final String baseUri = "https://api.chain.com/v1/bitcoin/";
+	private HttpsURLConnection connection = null;
 
 	public Chain() {
 		super();
@@ -20,11 +22,11 @@ public class Chain {
 
 	public Chain(String apiKey) {
 		super();
-		this.apiKey = apiKey;
+		this.apiKey = "?key=" + apiKey;
 	}
 
 	public void setApiKey(String apiKey) {
-		this.apiKey = apiKey;
+		this.apiKey = "?key=" + apiKey;
 	}
 
 	// Addresses
@@ -54,7 +56,7 @@ public class Chain {
 
 	public String sendTransaction(String rawTransactionHash) {
 		String json = "{\"hex\":\"" + rawTransactionHash + "\"}";
-		String answer = generateRequestPUT("transactions", "" ,json);
+		String answer = generateRequestPUT("transactions", "", json);
 		return answer;
 	}
 
@@ -76,105 +78,60 @@ public class Chain {
 	private static final Charset QUERY_CHARSET = Charset.forName("ISO8859-1");
 
 	private String generateRequestGET(String method, String parameters) {
-		
-		String uri = "https://api.chain.com/v1/bitcoin/" + method + "?key="
-				+ this.apiKey + parameters;
 		try {
-
-			HttpURLConnection connection = null;
-			URL url = new URL(uri);
-			connection = (HttpURLConnection) url.openConnection();
+			URL url = new URL(this.baseUri + method + this.apiKey + parameters);
+			connection = (HttpsURLConnection) url.openConnection();
 			connection.setRequestMethod("GET");
-			connection.connect();
-			int responseCode = connection.getResponseCode();
-
-			if (responseCode == HttpURLConnection.HTTP_OK) {
-
-				BufferedReader reader = new BufferedReader(
-						new InputStreamReader(connection.getInputStream()));
-				StringBuilder stringBuilder = new StringBuilder();
-
-				String line = null;
-				while ((line = reader.readLine()) != null) {
-					stringBuilder.append(line + "\n");
-				}
-				reader.close();
-				connection.disconnect();
-				return stringBuilder.toString();
-			}
-			else {
-				connection.disconnect();
-			}
+			return getResopnse();			
 		} catch (Exception e) {
+			return null;
 			// System.out.println("Coudln't connet to Chain.com");
 			// System.out.println(e.toString());
 		}
-		return null;
 	}
 
 	private String generateRequestPUT(String method, String parameters,
 			String requestBody) {
-
-		String uri = "https://api.chain.com/v1/bitcoin/" + method + "?key="
-				+ this.apiKey + parameters;
-
-		HttpURLConnection connection = null;
-		
 		try {
-			URL url = new URL(uri);
-			String contentType = "application/json";
-			connection = (HttpURLConnection) url.openConnection();
-			connection.setDoOutput(true);
+			URL url = new URL(this.baseUri + method + this.apiKey + parameters);
+			connection = (HttpsURLConnection) url.openConnection();
 			connection.setRequestMethod("PUT");
-			connection.setRequestProperty("Content-Type", contentType);
-			connection.setRequestProperty("Accept", "application/json");
-			connection.setRequestProperty("Content-Length",
-					Integer.toString(requestBody.getBytes().length));
-			connection.setUseCaches(true);
-			connection.setDoInput(true);
+			connection.setDoOutput(true);
+
 			OutputStream out = connection.getOutputStream();
 			out.write(requestBody.getBytes(QUERY_CHARSET));
 			out.flush();
 			out.close();
+			return getResopnse();
 		} catch (Exception ioE) {
-			connection.disconnect();
 			ioE.printStackTrace();
+			return null;
 		}
+	}
 
+	private String getResopnse() {	
 		try {
-			connection.connect();
-			int responseCode = connection.getResponseCode();
+			if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
+				BufferedReader reader = new BufferedReader(new InputStreamReader(
+						connection.getInputStream()));
+				StringBuilder stringBuilder = new StringBuilder();
+				String line = null;
 
-			if (responseCode == HttpURLConnection.HTTP_OK) {
-				InputStream is = connection.getInputStream();
-				BufferedReader rd = new BufferedReader(
-						new InputStreamReader(is));
-				String line;
-				StringBuffer response = new StringBuffer();
-				while ((line = rd.readLine()) != null) {
-					response.append(line);
-					response.append('\r');
+				while ((line = reader.readLine()) != null) {
+					stringBuilder.append(line + "\n");
 				}
-				rd.close();
-
-				String responseToString = response.toString();
-				
-				connection.disconnect();
-				return responseToString;
-
-			} else {
-				//System.out.println("Coudln't connet to Chain.com");
-				connection.disconnect();
+				reader.close();
+				return stringBuilder.toString();
 			}
+			return null;
 		} catch (Exception e) {
-			//System.out.println("Coudln't connet to Chain.com");
-			// System.out.println(e.toString());
+			connection.disconnect();
+			return null;
 		}
-		return null;
 	}
 
 	private JSONObject getJSONObject(String input) {
-		
+
 		try {
 			JSONObject answer = new JSONObject(input);
 			return answer;
@@ -185,6 +142,7 @@ public class Chain {
 	}
 
 	private JSONArray getJSONArray(String input) {
+
 		try {
 			JSONArray answer = new JSONArray(input);
 			return answer;
@@ -193,4 +151,5 @@ public class Chain {
 			return null;
 		}
 	}
+
 }
