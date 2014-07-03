@@ -8,8 +8,7 @@ public class ChainTest extends TestCase {
 
     public void setUp() throws Exception {
         super.setUp();
-        chain = new Chain();
-       // chain.setApiKey(legalApiKey);
+        chain = Chain.getChain();
     }
 
     public void tearDown() throws Exception {
@@ -114,4 +113,8 @@ public class ChainTest extends TestCase {
           assertNotNull(block);
           assertNotNull(block.get("hash"));
     }
+    
+    public void testCheckCertificate() throws Exception {
+        CheckSecurity.checkCertificate();
+  }
 }
