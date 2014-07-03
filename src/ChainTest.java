@@ -65,6 +65,16 @@ public class ChainTest extends TestCase {
         assertNull(transaction);
     }
 
+    public void testGetTransactionOpRerturn() throws Exception {
+    	 
+         String hash = "1dice8EMZmqKvrGE4Qc9bUfdsFf9PX3xaYDp";
+         JSONObject transaction = chain.getTransactionOpRerturn(hash);
+         assertNull(transaction);
+    	//hash = "A transaction hash with an OP_return";
+        //JSONObject transaction = chain.getTransactionOpRerturn(hash);
+        //assertNotNull(transaction);   
+    }
+    
     public void testSendTransaction() throws Exception {
     	 String hex = "1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp";
          String addressTransactions = chain.sendTransaction(hex);

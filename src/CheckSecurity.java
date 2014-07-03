@@ -1,10 +1,14 @@
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
@@ -26,7 +30,7 @@ public class CheckSecurity {
 					new TrustManager[] { new DefaultTrustManager() },
 					new SecureRandom());
 			SSLContext.setDefault(ctx);
-			URL url = new URL("https://api.chain.com/v1");
+			URL url = new URL("https://api.chain.com");
 			connection = (HttpsURLConnection) url.openConnection();
 			connection.setRequestMethod("GET");
 
@@ -49,12 +53,6 @@ public class CheckSecurity {
 				reader.close();
 				answer = stringBuilder.toString();
 			}
-			Certificate[] certs = connection.getServerCertificates();
-			for (Certificate cert : certs) {
-				System.out.println(cert.getType());
-				System.out.println(cert);
-			}
-
 			answer = null;
 		} catch (Exception e) {
 			connection.disconnect();
@@ -76,6 +74,21 @@ public class CheckSecurity {
 
 		public void checkServerTrusted(X509Certificate[] chain, String authType)
 				throws CertificateException {
+			
+			for (X509Certificate cert : chain) {
+				System.out.println(cert.toString());
+			}
+			KeyStore ks;
+			try {
+				ks = KeyStore.getInstance("JKS");
+				FileInputStream in = new FileInputStream("chain.pem");
+				ks.load(in, "changeit".toCharArray());
+				
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			/*
 			 * chain[chain.length -1] is the candidate for the root certificate.
 			 * Look it up to see whether it's in your list. If not, ask the user

@@ -13,6 +13,7 @@ public class Chain {
 	private final String baseUri = "https://api.chain.com/v1/bitcoin/";
 	private HttpsURLConnection connection = null;
 
+	// Initiators
 	public static Chain getChain() {
 		if (CheckSecurity.verified())
 			return new Chain();
@@ -27,11 +28,6 @@ public class Chain {
 		else 
 			return null;
 	}
-
-	public void setApiKey(String apiKey) {
-		this.apiKey = "?key=" + apiKey;
-	}
-
 
 	// Addresses
 	public JSONObject getAddress(String address) {
@@ -60,6 +56,10 @@ public class Chain {
 		return getJSONObject(generateRequestGET("transactions/" + hash, ""));
 	}
 
+	public JSONObject getTransactionOpRerturn(String hash) {
+		return getJSONObject(generateRequestGET("transactions/" + hash + "/op-return", ""));
+	}
+
 	public String sendTransaction(String rawTransactionHash) {
 		String json = "{\"hex\":\"" + rawTransactionHash + "\"}";
 		String answer = generateRequestPUT("transactions", "", json);
@@ -83,6 +83,11 @@ public class Chain {
 		return getJSONObject(generateRequestGET("blocks/latest", ""));
 	}
 
+	// Others
+	public void setApiKey(String apiKey) {
+		this.apiKey = "?key=" + apiKey;
+	}
+	
 	// Privates
 	private static final Charset QUERY_CHARSET = Charset.forName("ISO8859-1");
 
