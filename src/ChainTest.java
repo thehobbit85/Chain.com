@@ -8,12 +8,22 @@ public class ChainTest extends TestCase {
 
     public void setUp() throws Exception {
         super.setUp();
-        chain = Chain.getChain();
+        chain = Chain.getChain("4f1e1945321c493e5e53fdb1236a2849");
     }
 
     public void tearDown() throws Exception {
 
     }
+    
+    public void testGetAddressUnspents() throws Exception {
+ 	   String addr = "1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp";
+        JSONArray addressTransactions = chain.getAddressTransactions(addr);
+        assertNotNull(addressTransactions);
+        addr = "1dice8EMZmqKvrGE4Qc9bUfdsFf9PX3xaYDp";
+        addressTransactions = chain.getAddressTransactions(addr);
+        assertNull(addressTransactions);
+ }
+
 
     public void testGetAddress() throws Exception {
         String addr = "1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp";
@@ -46,15 +56,7 @@ public class ChainTest extends TestCase {
         assertNull(addressTransactions);
     }
 
-    public void testGetAddressUnspents() throws Exception {
-    	   String addr = "1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp";
-           JSONArray addressTransactions = chain.getAddressTransactions(addr);
-           assertNotNull(addressTransactions);
-           addr = "1dice8EMZmqKvrGE4Qc9bUfdsFf9PX3xaYDp";
-           addressTransactions = chain.getAddressTransactions(addr);
-           assertNull(addressTransactions);
-    }
-
+  
     public void testGetTransaction() throws Exception {
         String hash = "4cc6ff6ab765158ed179938542ce15801155754cafbb3d6be773cab80edb8ced";
         JSONObject transaction = chain.getTransaction(hash);
@@ -124,7 +126,9 @@ public class ChainTest extends TestCase {
           assertNotNull(block.get("hash"));
     }
     
-    public void testCheckCertificate() throws Exception {
-        CheckSecurity.checkCertificate();
-  }
+    public void testCheckCertificate() {
+    	assertTrue(CheckSecurity.checkCertificate());
+    }
+  
+
 }

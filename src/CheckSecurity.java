@@ -1,68 +1,53 @@
-import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.net.URL;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.SecureRandom;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 public class CheckSecurity {
 
-	private static final String rootCert = "https://chain.com/chain.pem";
+	public static boolean checkCertificate() {
 
-	public static String checkCertificate() {
-		String answer = null;
 		HttpsURLConnection connection = null;
 		try {
+			DefaultTrustManager trustManager = new DefaultTrustManager();
 			SSLContext ctx = SSLContext.getInstance("TLS");
 			ctx.init(new KeyManager[0],
-					new TrustManager[] { new DefaultTrustManager() },
+					new TrustManager[] { trustManager },
 					new SecureRandom());
 			SSLContext.setDefault(ctx);
 			URL url = new URL("https://api.chain.com");
 			connection = (HttpsURLConnection) url.openConnection();
 			connection.setRequestMethod("GET");
-
-			connection.setHostnameVerifier(new HostnameVerifier() {
-				@Override
-				public boolean verify(String arg0, SSLSession arg1) {
-					return true;
-				}
-			});
-
-			if (connection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
-				BufferedReader reader = new BufferedReader(
-						new InputStreamReader(connection.getInputStream()));
-				StringBuilder stringBuilder = new StringBuilder();
-				String line = null;
-
-				while ((line = reader.readLine()) != null) {
-					stringBuilder.append(line + "\n");
-				}
-				reader.close();
-				answer = stringBuilder.toString();
+			
+	
+			connection.connect();
+			if (trustManager.isServerTrusted()) 
+			{
+				connection.disconnect();
+				
+				return true;
 			}
-			answer = null;
 		} catch (Exception e) {
+			System.out.println(e.toString());
 			connection.disconnect();
-			answer = null;
+			return false;
 		}
-		return answer;
+		connection.disconnect();
+		return false;
 	}
-
+	
 	private static class DefaultTrustManager implements X509TrustManager {
 
+		private boolean trusted = false;
+		
 		public void checkClientTrusted(X509Certificate[] chain, String authType)
 				throws CertificateException {
 			// do nothing, you're the client
@@ -74,32 +59,33 @@ public class CheckSecurity {
 
 		public void checkServerTrusted(X509Certificate[] chain, String authType)
 				throws CertificateException {
-			
-			for (X509Certificate cert : chain) {
-				System.out.println(cert.toString());
-			}
-			KeyStore ks;
-			try {
-				ks = KeyStore.getInstance("JKS");
-				FileInputStream in = new FileInputStream("chain.pem");
-				ks.load(in, "changeit".toCharArray());
-				
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			/*
-			 * chain[chain.length -1] is the candidate for the root certificate.
-			 * Look it up to see whether it's in your list. If not, ask the user
-			 * for permission to add it. If not granted, reject. Validate the
-			 * chain using CertPathValidator and your list of trusted roots.
-			 */
-		}
-	}
 
-	public static boolean verified() {
-		// TODO Auto-generated method stub
-		return true;
+			InputStream inStream = null;
+			try {
+				// Loading the CA cert
+				URL u = getClass().getResource("chain.pem");
+				inStream = new FileInputStream(u.getFile());
+				CertificateFactory cf = CertificateFactory.getInstance("X.509");
+				X509Certificate ca = (X509Certificate) cf
+						.generateCertificate(inStream);
+
+				//chain[1].verify(ca.getPublicKey());
+				// Verifing by public key
+				chain[2].verify(ca.getPublicKey());
+				this.trusted = true;
+			} catch (Exception e) {
+				System.out.println(e.toString());
+			} finally {
+				try {
+					inStream.close();
+				} catch (Exception e) {
+					System.out.println(e.toString());		
+				}
+			}
+		}
+		
+		public boolean isServerTrusted() {
+			return this.trusted;
+		}
 	}
 }

@@ -4,18 +4,19 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
 import javax.net.ssl.HttpsURLConnection;
+import javax.xml.bind.DatatypeConverter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Chain {
 
-	private String apiKey = "?key=DEMO-4a5e1e4";
-	private final String baseUri = "https://api.chain.com/v1/bitcoin/";
+	private String apiKey;
+	private String baseUri = "https://api.chain.com/v1/bitcoin/";
 	private HttpsURLConnection connection = null;
 
 	// Initiators
 	public static Chain getChain() {
-		if (CheckSecurity.verified())
+		if (CheckSecurity.checkCertificate())
 			return new Chain();
 		else 
 			return null;
@@ -23,7 +24,7 @@ public class Chain {
 	}
 	
 	public static Chain getChain(String apiKey) {
-		if (CheckSecurity.verified())
+		if (CheckSecurity.checkCertificate())
 			return new Chain(apiKey);
 		else 
 			return null;
@@ -32,60 +33,68 @@ public class Chain {
 	// Addresses
 	public JSONObject getAddress(String address) {
 
-		return getJSONObject(generateRequestGET("addresses/" + address, ""));
+		return getJSONObject(generateRequestGET("addresses/" + address));
 
 	}
 
 	public JSONArray getAddressTransactions(String address) {
 		return getJSONArray(generateRequestGET("addresses/" + address
-				+ "/transactions", ""));
+				+ "/transactions"));
 	}
 
 	public JSONArray getAddressTransactions(String address, int limit) {
 		return getJSONArray(generateRequestGET("addresses/" + address
-				+ "/transactions", "&limit=" + Integer.toString(limit)));
+				+ "/transactions?limit=" + Integer.toString(limit)));
 	}
 
 	public JSONArray getAddressUnspents(String address) {
 		return getJSONArray(generateRequestGET("addresses/" + address
-				+ "/unspents", ""));
+				+ "/unspents"));
 	}
 
 	// Transactions
 	public JSONObject getTransaction(String hash) {
-		return getJSONObject(generateRequestGET("transactions/" + hash, ""));
+		return getJSONObject(generateRequestGET("transactions/" + hash));
 	}
 
 	public JSONObject getTransactionOpRerturn(String hash) {
-		return getJSONObject(generateRequestGET("transactions/" + hash + "/op-return", ""));
+		return getJSONObject(generateRequestGET("transactions/" + hash + "/op-return"));
 	}
 
 	public String sendTransaction(String rawTransactionHash) {
 		String json = "{\"hex\":\"" + rawTransactionHash + "\"}";
-		String answer = generateRequestPUT("transactions", "", json);
+		String answer = generateRequestPUT("transactions", json);
 		return answer;
 	}
 
 	// Blocks
 	public JSONObject getBlockByHash(String hash) {
 	
-			return getJSONObject(generateRequestGET("blocks/" + hash, ""));
+			return getJSONObject(generateRequestGET("blocks/" + hash));
 		
 	}
 
 	public JSONObject getBlockByHeight(int height) {
 		
 			return getJSONObject(generateRequestGET(
-					"blocks/" + Integer.toString(height), ""));
+					"blocks/" + Integer.toString(height)));
 	}
 
 	public JSONObject getLatestBlock() {
-		return getJSONObject(generateRequestGET("blocks/latest", ""));
+		return getJSONObject(generateRequestGET("blocks/latest"));
 	}
 
 	// Others
 	public void setApiKey(String apiKey) {
 		this.apiKey = "?key=" + apiKey;
+	}
+	
+	public void useMainNet() {
+		this.baseUri = "https://api.chain.com/v1/bitcoin/";
+	}
+	
+	public void useTestNet3() {
+		this.baseUri = "https//api.chain.com/v1/testnet3/";
 	}
 	
 	// Privates
@@ -97,29 +106,31 @@ public class Chain {
 
 	private Chain(String apiKey) {
 		super();
-		this.apiKey = "?key=" + apiKey;
+		this.apiKey = "Basic " + DatatypeConverter.printBase64Binary(apiKey.getBytes());
 	}
 
-	private String generateRequestGET(String method, String parameters) {
+	private String generateRequestGET(String api) {
 		try {
-			URL url = new URL(this.baseUri + method + this.apiKey + parameters);
+			URL url = new URL(this.baseUri + api);
 			connection = (HttpsURLConnection) url.openConnection();
 			connection.setRequestMethod("GET");
+			connection.setRequestProperty("Authorization", this.apiKey);
+		
+			
 			return getResopnse();
 		} catch (Exception e) {
 			return null;
-			// System.out.println("Coudln't connet to Chain.com");
-			// System.out.println(e.toString());
 		}
 	}
 
-	private String generateRequestPUT(String method, String parameters,
+	private String generateRequestPUT(String api,
 			String requestBody) {
 		try {
-			URL url = new URL(this.baseUri + method + this.apiKey + parameters);
+			URL url = new URL(this.baseUri + api);
 			connection = (HttpsURLConnection) url.openConnection();
 			connection.setRequestMethod("PUT");
 			connection.setDoOutput(true);
+			connection.setRequestProperty("Authorization", this.apiKey);
 
 			OutputStream out = connection.getOutputStream();
 			out.write(requestBody.getBytes(QUERY_CHARSET));
@@ -174,4 +185,5 @@ public class Chain {
 		}
 	}
 
+	
 }
