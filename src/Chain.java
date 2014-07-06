@@ -11,25 +11,26 @@ import org.json.JSONObject;
 public class Chain {
 
 	private String apiKey;
-	private String baseUri = "https://api.chain.com/v1/bitcoin/";
+	private String chainUri = "https://api.chain.com/v1/";
+	private String network = "bitcoin/";
+	private String baseUri = this.chainUri + this.network;
 	private HttpsURLConnection connection = null;
 
 	// Initiators
-	public static Chain getChain() {
-		if (CheckSecurity.checkCertificate())
+	public static Chain getChain()  {
+		if (CheckSecurity.checkCertificate()) 
 			return new Chain();
 		else 
 			return null;
-	
 	}
 	
-	public static Chain getChain(String apiKey) {
-		if (CheckSecurity.checkCertificate())
+	public static Chain getChain(String apiKey)  {
+		if (CheckSecurity.checkCertificate()) 
 			return new Chain(apiKey);
 		else 
 			return null;
 	}
-
+	
 	// Addresses
 	public JSONObject getAddress(String address) {
 
@@ -90,11 +91,11 @@ public class Chain {
 	}
 	
 	public void useMainNet() {
-		this.baseUri = "https://api.chain.com/v1/bitcoin/";
+		this.network = "bitcoin/";
 	}
 	
 	public void useTestNet3() {
-		this.baseUri = "https//api.chain.com/v1/testnet3/";
+		this.network = "testnet3/";
 	}
 	
 	// Privates
@@ -104,9 +105,10 @@ public class Chain {
 		super();
 	}
 
-	private Chain(String apiKey) {
+	private Chain(String apiKey)  {
 		super();
 		this.apiKey = "Basic " + DatatypeConverter.printBase64Binary(apiKey.getBytes());
+			
 	}
 
 	private String generateRequestGET(String api) {
@@ -116,7 +118,6 @@ public class Chain {
 			connection.setRequestMethod("GET");
 			connection.setRequestProperty("Authorization", this.apiKey);
 		
-			
 			return getResopnse();
 		} catch (Exception e) {
 			return null;

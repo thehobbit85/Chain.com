@@ -32,7 +32,6 @@ public class CheckSecurity {
 			if (trustManager.isServerTrusted()) 
 			{
 				connection.disconnect();
-				
 				return true;
 			}
 		} catch (Exception e) {

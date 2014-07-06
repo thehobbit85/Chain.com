@@ -4,11 +4,10 @@ import org.json.JSONObject;
 
 public class ChainTest extends TestCase {
 
-    private Chain chain;
+    private Chain chain = Chain.getChain("4f1e1945321c493e5e53fdb1236a2849");
 
     public void setUp() throws Exception {
-        super.setUp();
-        chain = Chain.getChain("4f1e1945321c493e5e53fdb1236a2849");
+       super.setUp();
     }
 
     public void tearDown() throws Exception {
@@ -22,7 +21,7 @@ public class ChainTest extends TestCase {
         addr = "1dice8EMZmqKvrGE4Qc9bUfdsFf9PX3xaYDp";
         addressTransactions = chain.getAddressTransactions(addr);
         assertNull(addressTransactions);
- }
+    }
 
 
     public void testGetAddress() throws Exception {
