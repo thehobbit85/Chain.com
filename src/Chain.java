@@ -103,6 +103,7 @@ public class Chain {
 
 	private Chain() {
 		super();
+		this.apiKey = "Basic " + DatatypeConverter.printBase64Binary("DEMO-4a5e1e4".getBytes());
 	}
 
 	private Chain(String apiKey)  {
@@ -155,6 +156,7 @@ public class Chain {
 					stringBuilder.append(line + "\n");
 				}
 				reader.close();
+				connection.disconnect();
 				return stringBuilder.toString();
 			}
 			return null;
